@@ -4,7 +4,7 @@ import { User, uuid } from './user';
 import { database as dbconfig } from "../config.json";
 
 export const insertLocation = async (loc: Location) => {
-  const client = new Client(dbconfig.conn);
+  const client = new Client(dbconfig);
   await client.connect();
   
   try {
@@ -19,7 +19,7 @@ export const insertLocation = async (loc: Location) => {
 }
 
 export const insertUser = async (user: User) : Promise<uuid> => {
-  const client = new Client(dbconfig.conn);
+  const client = new Client(dbconfig);
   await client.connect();
 
   try {
@@ -39,7 +39,7 @@ export const insertCollection = async (collection: Collection) => {
 }
 
 export const insertCollections = async (collections: Collection[]) => {
-  const client = new Client(dbconfig.conn);
+  const client = new Client(dbconfig);
   await client.connect();
   try {
     for (const collection of collections) {
@@ -69,7 +69,7 @@ export interface QueryCollections {
 }
 
 export const selectCollecions = async (query: QueryCollections) : Promise<Collection[]> => {
-  const client = new Client(dbconfig.conn);
+  const client = new Client(dbconfig);
   await client.connect();
   
   try {
@@ -97,7 +97,7 @@ export const selectCollecions = async (query: QueryCollections) : Promise<Collec
 }
 
 export const selectUser = async (userid: uuid) : Promise<User> => {
-  const client = new Client(dbconfig.conn);
+  const client = new Client(dbconfig);
   await client.connect();
   
   try {
@@ -114,7 +114,7 @@ export const selectUser = async (userid: uuid) : Promise<User> => {
 }
 
 export const selectLocations = async (authroity: string) : Promise<Location[]> => {
-  const client = new Client(dbconfig.conn);
+  const client = new Client(dbconfig);
   await client.connect();
 
   try {
@@ -139,7 +139,7 @@ export const selectLocations = async (authroity: string) : Promise<Location[]> =
 }
 
 export const getLocation = async (uprn: string) : Promise<Location> => {
-  const client = new Client(dbconfig.conn);
+  const client = new Client(dbconfig);
   await client.connect();
 
   try {
