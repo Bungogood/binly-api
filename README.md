@@ -11,6 +11,25 @@ Created using typescript express api which interfaces with a postgres database.
 - ts-postgres
 - typescript
 
+## Config
+
+create a `config.json` file using this template `template.config.json`:
+```json
+{
+  "port": 8080,
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "user": "postgres",
+    "password": "postgres",
+    "database": "binly"
+  },
+  "osdatahub": {
+    "apiKey": "<your-api-key>"
+  }
+}
+```
+
 ## Supported Councils
 
 - Glasgow City Council
