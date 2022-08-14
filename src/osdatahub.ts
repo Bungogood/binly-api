@@ -14,6 +14,7 @@ interface Result {
   ADDRESS: string
   BUILDING_NAME?: string
   BUILDING_NUMBER?: string
+  SUB_BUILDING_NAME?: string // add in 3f1
   DEPENDENT_LOCALITY?: string
   THOROUGHFARE_NAME: string
   POST_TOWN: string
@@ -24,12 +25,12 @@ interface Result {
 
 export interface Location {
 	uprn: string
-	building_name: string
-	street: string
+	building_name?: string
+	street?: string
 	area?: string
-	city: string
-	postcode: string
-	authroity: string
+	city?: string
+	postcode?: string
+	authroity?: string
 }
 
 const toLocation = (res: Result): Location => ({

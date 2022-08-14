@@ -1,9 +1,9 @@
 import express from "express";
 import { findLocation, Location } from "./osdatahub";
-import { Collection, getLocation, insertLocation, insertUser, selectCollecions, selectLocations, selectUser } from "./db";
+import { Collection, insertLocation, insertUser, selectCollecions, selectUser } from "./db";
 import { toUser, User } from "./user";
 import cron from "node-cron"
-import { scrape, scraper } from "./scraper";
+import { addCollections } from "./scraper";
 
 export interface Signup {
   username: string
@@ -35,14 +35,16 @@ app.post('/api/signup', async ( req, res ) => {
   
   try {
     await insertLocation(loc)
+    addCollections(loc)
   } catch (e) {
     console.log("WARN: location already exsists")
   }
 
   try {
     user.id = await insertUser(user)
+    delete user.password
     console.log(user)
-    res.send(user);
+    res.send(user)
   } catch (e) {
     // console.log(e)
     res.status(409).send({message: e.message})
@@ -50,11 +52,12 @@ app.post('/api/signup', async ( req, res ) => {
 });
 
 app.get('/api/collections', async ( req, res ) => {
-  let { uprn } = req.query as { uprn: string };
+  let query = req.query as unknown as { uprn: string, from?: Date, next?: number };
+  if (query.from) query.from = new Date(query.from)
   // no checking uprn exsists
   try {
-    let collections : Collection[] = await selectCollecions(uprn)
-    console.log(collections)
+    let collections : Collection[] = await selectCollecions(query)
+    console.log(collections.length)
     res.send(collections);
   } catch (e) {
     // console.log(e)
@@ -67,37 +70,13 @@ app.get('/api/user/collections', async ( req, res ) => {
   // no checking userid exsists
   try {
     let user = await selectUser(userid)
-    let collections = await selectCollecions(user.uprn)
-    console.log(collections)
+    let collections = await selectCollecions({ uprn: user.uprn })
+    // console.log(collections)
     res.send(collections);
   } catch (e) {
     // console.log(e)
     res.status(409).send({message: e.message})
   }
-});
-
-app.get('/api/sync', async ( req, res ) => {
-  let { authority, uprn } = req.query as { authority?: string, uprn?: string };
-
-  if (uprn) {
-    try {
-      let location = await getLocation(uprn)
-      scraper(location)
-      res.send(location); 
-    } catch (e) {
-      // console.log(e)
-      res.status(200).send({message: e.message})
-    }
-  } else {
-    try {
-      let locations = await selectLocations(authority)
-      scrape(locations)
-      res.send(locations);
-    } catch (e) {
-      // console.log(e)
-      res.status(409).send({message: e.message})
-    }
-  }  
 });
 
 // start the Express server

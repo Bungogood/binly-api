@@ -11,7 +11,7 @@ export const insertLocation = async (loc: Location) => {
     const insertQuery : string = 'INSERT INTO locations (uprn, building_name, street, area, city, postcode, authroity) VALUES ($1, $2, $3, $4, $5, $6, $7);'
     await client.query(insertQuery, [loc.uprn, loc.building_name, loc.street, loc.area || null, loc.city, loc.postcode, loc.authroity || null]);
   } catch(e) {
-    console.error("ERROR:", (<Error>e).message); //conversion to Error type
+    console.error("ERROR:", (<Error>e).message); // conversion to Error type
     throw e;
   } finally {
       await client.end();
@@ -26,8 +26,28 @@ export const insertUser = async (user: User) : Promise<uuid> => {
     const insertQuery : string = 'INSERT INTO users (username, password, email, uprn) VALUES ($1, $2, $3, $4) RETURNING id;'
     const result = await client.query(insertQuery, [user.username, user.password, user.email, user.uprn]);
     return <uuid>result.rows[0][0]
-  } catch(e){
-    console.error("ERROR:", (<Error>e).message); //conversion to Error type
+  } catch(e) {
+    console.error("ERROR:", (<Error>e).message); // conversion to Error type
+    throw e;
+  } finally {
+      await client.end();
+  }
+}
+
+export const insertCollection = async (collection: Collection) => {
+  await insertCollections([collection])
+}
+
+export const insertCollections = async (collections: Collection[]) => {
+  const client = new Client(dbconfig.conn);
+  await client.connect();
+  try {
+    for (const collection of collections) {
+      const insertQuery : string = 'INSERT INTO collections (uprn, binid, date) VALUES ($1, (SELECT id AS binid FROM bins WHERE color = $2), $3);'
+      await client.query(insertQuery, [collection.uprn, collection.color, collection.date]);
+    }
+  } catch(e) {
+    console.error("ERROR:", (<Error>e).message); // conversion to Error type
     throw e;
   } finally {
       await client.end();
@@ -35,21 +55,29 @@ export const insertUser = async (user: User) : Promise<uuid> => {
 }
 
 export interface Collection {
+    uprn: string
     color: string
-    purpose: string
+    purpose?: string
+    authority?: string
     date: Date
 }
 
-export const selectCollecions = async (uprn: string) : Promise<Collection[]> => {
+export const selectCollecions = async (query: { uprn: string, from?: Date }) : Promise<Collection[]> => {
   const client = new Client(dbconfig.conn);
   await client.connect();
   
   try {
-    const selectQuery : string = 'SELECT color, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1;'
-    const results = await client.query(selectQuery, [uprn]);
-    let toCollection = (res: any[]) : Collection => ({color: res[0], purpose: res[1], date: res[2]})
+    let results;
+    if (query.from) {
+      const selectQuery : string = 'SELECT color, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1 AND date > $2 ORDER BY date ASC;'
+      results = await client.query(selectQuery, [query.uprn, query.from]);
+    } else {
+      const selectQuery : string = 'SELECT color, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1 ORDER BY date ASC;'
+      results = await client.query(selectQuery, [query.uprn]);
+    }
+    let toCollection = (res: any[]) : Collection => ({ uprn: query.uprn, color: res[0], purpose: res[1], date: res[2] })
     return results.rows.map(toCollection)
-  } catch(e){
+  } catch(e) {
     console.error("ERROR:", (<Error>e).message); //conversion to Error type
     throw e;
   } finally {
@@ -66,7 +94,7 @@ export const selectUser = async (userid: uuid) : Promise<User> => {
     const results = await client.query(selectQuery, [userid]);
     let toUser = (res: any[]) : User => ({id: res[0], username: res[1], uprn: res[2]})
     return toUser(results.rows[0])
-  } catch(e){
+  } catch(e) {
     console.error("ERROR:", (<Error>e).message); //conversion to Error type
     throw e;
   } finally {
@@ -91,7 +119,7 @@ export const selectLocations = async (authroity: string) : Promise<Location[]> =
       authroity: res[6]
     })
     return results.rows.map(toLocation)
-  } catch(e){
+  } catch(e) {
     console.error("ERROR:", (<Error>e).message); //conversion to Error type
     throw e;
   } finally {
@@ -116,7 +144,7 @@ export const getLocation = async (uprn: string) : Promise<Location> => {
       authroity: res[6]
     })
     return toLocation(result.rows[0])
-  } catch(e){
+  } catch(e) {
     console.error("ERROR:", (<Error>e).message); //conversion to Error type
     throw e;
   } finally {
