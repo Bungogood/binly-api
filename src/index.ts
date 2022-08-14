@@ -4,6 +4,7 @@ import { Collection, insertLocation, insertUser, QueryCollections, selectColleci
 import { toUser, User } from "./user";
 import cron from "node-cron"
 import { addCollections } from "./scraper";
+import { port } from "../config.json";
 
 export interface Signup {
   username: string
@@ -17,7 +18,6 @@ export interface Signup {
 
 const app = express();
 app.use(express.json());
-const port = 8080; // default port to listen
 
 // define a route handler for the default home page
 app.get( "/", ( req, res ) => {
