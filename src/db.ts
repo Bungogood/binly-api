@@ -62,15 +62,26 @@ export interface Collection {
     date: Date
 }
 
-export const selectCollecions = async (query: { uprn: string, from?: Date }) : Promise<Collection[]> => {
+export interface QueryCollections {
+  uprn: string,
+  until?: Date,
+  from?: Date
+}
+
+export const selectCollecions = async (query: QueryCollections) : Promise<Collection[]> => {
   const client = new Client(dbconfig.conn);
   await client.connect();
   
   try {
     let results;
     if (query.from) {
-      const selectQuery : string = 'SELECT color, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1 AND date > $2 ORDER BY date ASC;'
-      results = await client.query(selectQuery, [query.uprn, query.from]);
+      if (query.until) {
+        const selectQuery : string = 'SELECT color, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1 AND date > $2 AND date < $3 ORDER BY date ASC;'
+        results = await client.query(selectQuery, [query.uprn, query.from, query.until]);
+      } else {
+        const selectQuery : string = 'SELECT color, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1 AND date > $2 ORDER BY date ASC;'
+        results = await client.query(selectQuery, [query.uprn, query.from]);
+      }
     } else {
       const selectQuery : string = 'SELECT color, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1 ORDER BY date ASC;'
       results = await client.query(selectQuery, [query.uprn]);

@@ -1,6 +1,6 @@
 import express from "express";
 import { findLocation, Location } from "./osdatahub";
-import { Collection, insertLocation, insertUser, selectCollecions, selectUser } from "./db";
+import { Collection, insertLocation, insertUser, QueryCollections, selectCollecions, selectUser } from "./db";
 import { toUser, User } from "./user";
 import cron from "node-cron"
 import { addCollections } from "./scraper";
@@ -52,12 +52,12 @@ app.post('/api/signup', async ( req, res ) => {
 });
 
 app.get('/api/collections', async ( req, res ) => {
-  let query = req.query as unknown as { uprn: string, from?: Date, next?: number };
+  let query = req.query as unknown as QueryCollections;
   if (query.from) query.from = new Date(query.from)
+  if (query.until) query.until = new Date(query.until)
   // no checking uprn exsists
   try {
     let collections : Collection[] = await selectCollecions(query)
-    console.log(collections.length)
     res.send(collections);
   } catch (e) {
     // console.log(e)
