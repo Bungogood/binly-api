@@ -36,3 +36,18 @@ export const getLocation = async (uprn: string) : Promise<Location> => {
     await client.end();
   }
 }
+
+export const insertLocation = async (loc: Location) => {
+  const client = new Client(dbconfig);
+  await client.connect();
+  
+  try {
+    const insertQuery : string = 'INSERT INTO locations (uprn, building_name, street, area, city, postcode, authroity) VALUES ($1, $2, $3, $4, $5, $6, $7);'
+    await client.query(insertQuery, [loc.uprn, loc.building_name, loc.street, loc.area || null, loc.city, loc.postcode, loc.authroity || null]);
+  } catch(e) {
+    console.error("ERROR:", (<Error>e).message); // conversion to Error type
+    throw e;
+  } finally {
+      await client.end();
+  }
+}

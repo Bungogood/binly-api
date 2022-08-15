@@ -1,9 +1,8 @@
 import { database as dbconfig } from "../config.json";
 import { Client } from 'ts-postgres';
 import { queryLocation } from "./osdatahub";
-import { insertLocation } from "./db";
 import { addCollections } from "./scraper";
-import { Location, toLocation } from "./location";
+import { insertLocation, Location, toLocation } from "./location";
 
 export type uuid = string;
 

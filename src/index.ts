@@ -1,11 +1,11 @@
 import express from "express";
 import { findLocation } from "./osdatahub";
-import { Collection, insertLocation, QueryCollections, selectCollecions } from "./db";
+import { Collection, QueryCollections, selectCollecions } from "./db";
 import { getUser, getAddresses, getDefaultAddress, setDefaultAddress, signup, Signup } from "./user";
 import cron from "node-cron"
 import { addCollections } from "./scraper";
 import { port } from "../config.json";
-import { getLocation } from "./location";
+import { getLocation, insertLocation } from "./location";
 
 const app = express();
 app.use(express.json());
