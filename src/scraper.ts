@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { parse } from 'node-html-parser';
 import { Collection, insertCollections } from "./db"
-import { Location } from "./osdatahub"
+import { Location } from './location';
 
 export const addCollections = async (loc: Location) => {
   let authMapper: Record<string, (loc: Location) => Promise<Collection[]>> = {

@@ -5,16 +5,7 @@ import { getUser, addAddress, getAddresses, getDefaultAddress, getLocation, inse
 import cron from "node-cron"
 import { addCollections } from "./scraper";
 import { port } from "../config.json";
-
-export interface Signup {
-  username: string
-  password: string
-  email: string
-  building_name: string
-  street: string
-  city: string
-  postcode: string
-}
+import { getLocation } from "./location";
 
 const app = express();
 app.use(express.json());

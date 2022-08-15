@@ -1,7 +1,10 @@
 import { database as dbconfig } from "../config.json";
 import { Client } from 'ts-postgres';
 import { Signup } from './index';
-import { Location } from "./osdatahub";
+import { queryLocation } from "./osdatahub";
+import { insertLocation } from "./db";
+import { addCollections } from "./scraper";
+import { Location, toLocation } from "./location";
 
 export type uuid = string;
 
@@ -91,16 +94,6 @@ export const setDefaultAddress = async (user: User, loc: Location) => {
   }
 }
 
-const toLocation = ([uprn, building_name, street, area, city, postcode, authroity]: any[]) : Location => ({
-  uprn: uprn,
-  building_name: building_name,
-  street: street,
-  area: area === null ? undefined : area,
-  city: city,
-  postcode: postcode,
-  authroity: authroity === null ? undefined : authroity
-})
-
 export const getDefaultAddress = async (user: User) : Promise<Location> => {
   const client = new Client(dbconfig);
   await client.connect();
@@ -134,21 +127,5 @@ export const getAddresses = async (user: User) : Promise<Location[]> => {
     return result.rows.map(toLocation);
   } finally {
       await client.end();
-  }
-}
-
-export const getLocation = async (uprn: string) : Promise<Location> => {
-  const client = new Client(dbconfig);
-  await client.connect();
-
-  try {
-    const result = await client.query(`
-      SELECT uprn, building_name, street, area, city, postcode, authroity 
-      FROM locations
-      WHERE uprn = $1;
-    `, [uprn]);
-    return toLocation(result.rows.pop())
-  } finally {
-    await client.end();
   }
 }

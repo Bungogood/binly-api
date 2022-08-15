@@ -1,6 +1,6 @@
 import { Client } from 'ts-postgres';
-import { Location } from "./osdatahub"
 import { database as dbconfig } from "../config.json";
+import { Location } from './location';
 
 export const insertLocation = async (loc: Location) => {
   const client = new Client(dbconfig);

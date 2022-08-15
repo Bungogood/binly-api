@@ -1,5 +1,6 @@
 import { osdatahub } from "../config.json"
 import axios from "axios";
+import { Location } from "./location";
 
 interface Results {
   header: any
@@ -21,16 +22,6 @@ interface Result {
   POSTCODE: string
   LOCAL_CUSTODIAN_CODE_DESCRIPTION: string
   MATCH: number
-}
-
-export interface Location {
-	uprn: string
-	building_name?: string
-	street?: string
-	area?: string
-	city?: string
-	postcode?: string
-	authroity?: string
 }
 
 const toLocation = (res: Result): Location => ({
