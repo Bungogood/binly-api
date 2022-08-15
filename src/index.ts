@@ -1,19 +1,13 @@
 import express from "express";
-import { findLocation } from "./osdatahub";
 import { Collection, QueryCollections, selectCollecions } from "./db";
 import { getUser, getAddresses, getDefaultAddress, setDefaultAddress, signup, Signup } from "./user";
 import cron from "node-cron"
-import { addCollections } from "./scraper";
+import { sync } from "./scraper";
 import { port } from "../config.json";
-import { getLocation, insertLocation } from "./location";
+import { getLocation } from "./location";
 
 const app = express();
 app.use(express.json());
-
-// define a route handler for the default home page
-app.get( "/", ( req, res ) => {
-  res.send( "Hello world!" );
-});
 
 app.get( "/api/signin", ( req, res ) => {
   res.send( "work in!" );
@@ -102,17 +96,8 @@ app.put('/api/user/default-address', async ( req, res ) => {
 
 app.patch('/api/sync', async ( req, res ) => {
   let { uprn } = req.query as { uprn: string, year?: string };
-  let loc;
   try {
-    loc = await getLocation(uprn)
-  } catch (e) {
-    console.log("Adding:",uprn)
-    loc = await findLocation(uprn)
-    await insertLocation(loc)
-  }
-  // need to remove old ones
-  try {
-    addCollections(loc)
+    await sync(uprn)
     res.send();
   } catch (e) {
     console.error(e.message)
