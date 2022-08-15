@@ -1,7 +1,7 @@
 import express from "express";
 import { findLocation, Location, queryLocation } from "./osdatahub";
 import { Collection, insertLocation, QueryCollections, selectCollecions } from "./db";
-import { getUser, addAddress, getAddresses, getDefaultAddress, getLocation, insertUser, setDefaultAddress, toUser, User } from "./user";
+import { getUser, addAddress, getAddresses, getDefaultAddress, getLocation, insertUser, setDefaultAddress, toUser } from "./user";
 import cron from "node-cron"
 import { addCollections } from "./scraper";
 import { port } from "../config.json";
@@ -31,7 +31,7 @@ app.get( "/api/signin", ( req, res ) => {
 app.post('/api/signup', async ( req, res ) => {
   const signup : Signup = req.body;
   const loc : Location = await queryLocation(`${signup.building_name}, ${signup.street}, ${signup.city}, ${signup.postcode}`);
-  const user : User = toUser(signup);
+  const user = toUser(signup);
   
   try {
     await insertLocation(loc)

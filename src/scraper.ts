@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { HTMLElement, parse } from 'node-html-parser';
+import { parse } from 'node-html-parser';
 import { Collection, insertCollections } from "./db"
 import { Location } from "./osdatahub"
 
