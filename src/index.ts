@@ -1,5 +1,5 @@
 import express from "express";
-import { findLocation, Location } from "./osdatahub";
+import { findLocation, Location, queryLocation } from "./osdatahub";
 import { Collection, insertLocation, QueryCollections, selectCollecions } from "./db";
 import { getUser, addAddress, getAddresses, getDefaultAddress, getLocation, insertUser, setDefaultAddress, toUser, User } from "./user";
 import cron from "node-cron"
@@ -29,9 +29,9 @@ app.get( "/api/signin", ( req, res ) => {
 });
 
 app.post('/api/signup', async ( req, res ) => {
-  let signup : Signup = req.body;
-  let loc : Location = await findLocation(`${signup.building_name}, ${signup.street}, ${signup.city}, ${signup.postcode}`);
-  let user : User = toUser(signup, loc.uprn);
+  const signup : Signup = req.body;
+  const loc : Location = await queryLocation(`${signup.building_name}, ${signup.street}, ${signup.city}, ${signup.postcode}`);
+  const user : User = toUser(signup);
   
   try {
     await insertLocation(loc)
@@ -114,6 +114,26 @@ app.put('/api/user/default-address', async ( req, res ) => {
     let user = await getUser(userid);
     let loc = await getLocation(uprn);
     await setDefaultAddress(user, loc);
+    res.send();
+  } catch (e) {
+    console.error(e.message)
+    res.status(400).send({message: e.message})
+  }
+});
+
+app.patch('/api/sync', async ( req, res ) => {
+  let { uprn } = req.query as { uprn: string, year?: string };
+  let loc;
+  try {
+    loc = await getLocation(uprn)
+  } catch (e) {
+    console.log("Adding:",uprn)
+    loc = await findLocation(uprn)
+    await insertLocation(loc)
+  }
+  // need to remove old ones
+  try {
+    addCollections(loc)
     res.send();
   } catch (e) {
     console.error(e.message)

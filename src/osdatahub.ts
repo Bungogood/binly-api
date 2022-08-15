@@ -47,11 +47,23 @@ const bestLocation = (results: Results) : Location => {
   return toLocation(results.results[0].DPA)
 }
 
-export const findLocation = async (query: string) : Promise<Location> => {
+export const queryLocation = async (query: string) : Promise<Location> => {
   let url = `https://api.os.uk/search/places/v1/find`;
   return axios.get(url, {
       params: {
         query: query,
+        key: osdatahub.apiKey
+      }
+    }).then((res: {data: Results}) => {
+      return bestLocation(res.data);
+    })
+}
+
+export const findLocation = async (uprn: string) : Promise<Location> => {
+  let url = `https://api.os.uk/search/places/v1/uprn`;
+  return axios.get(url, {
+      params: {
+        uprn: uprn,
         key: osdatahub.apiKey
       }
     }).then((res: {data: Results}) => {
