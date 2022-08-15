@@ -1,7 +1,7 @@
 import express from "express";
-import { findLocation, Location, queryLocation } from "./osdatahub";
+import { findLocation } from "./osdatahub";
 import { Collection, insertLocation, QueryCollections, selectCollecions } from "./db";
-import { getUser, addAddress, getAddresses, getDefaultAddress, getLocation, insertUser, setDefaultAddress, toUser } from "./user";
+import { getUser, getAddresses, getDefaultAddress, setDefaultAddress, signup, Signup } from "./user";
 import cron from "node-cron"
 import { addCollections } from "./scraper";
 import { port } from "../config.json";
@@ -20,21 +20,9 @@ app.get( "/api/signin", ( req, res ) => {
 });
 
 app.post('/api/signup', async ( req, res ) => {
-  const signup : Signup = req.body;
-  const loc : Location = await queryLocation(`${signup.building_name}, ${signup.street}, ${signup.city}, ${signup.postcode}`);
-  const user = toUser(signup);
-  
+  const newSignup : Signup = req.body;
   try {
-    await insertLocation(loc)
-    addCollections(loc)
-  } catch (e) {
-    console.log("WARN: location already exsists")
-  }
-
-  try {
-    user.id = await insertUser(user, signup.password)
-    addAddress(user, loc).then(() => setDefaultAddress(user, loc))
-    console.log(user)
+    let user = await signup(newSignup)
     res.send(user)
   } catch (e) {
     // console.log(e)

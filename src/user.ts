@@ -1,6 +1,5 @@
 import { database as dbconfig } from "../config.json";
 import { Client } from 'ts-postgres';
-import { Signup } from './index';
 import { queryLocation } from "./osdatahub";
 import { insertLocation } from "./db";
 import { addCollections } from "./scraper";
@@ -14,12 +13,40 @@ export interface User {
 	email?: string
 }
 
+export interface Signup {
+  username: string
+  password: string
+  email: string
+  building_name: string
+  street: string
+  city: string
+  postcode: string
+}
+
 export const toUser = (signup: Signup) : User => {
   return {
     username: signup.username,
     email: signup.email
   }
 }
+
+export const signup = async ( signup: Signup ) : Promise<User> => {
+  const loc : Location = await queryLocation(`${signup.building_name}, ${signup.street}, ${signup.city}, ${signup.postcode}`);
+  const user = toUser(signup);
+  
+  try {
+    await insertLocation(loc)
+    addCollections(loc)
+  } catch (e) {
+    console.log("WARN: location already exsists")
+  }
+
+  user.id = await insertUser(user, signup.password)
+  addAddress(user, loc).then(() => setDefaultAddress(user, loc))
+  return user
+}
+
+
 export const getUser = async (userid: uuid) : Promise<User> => {
   const client = new Client(dbconfig);
   await client.connect();
