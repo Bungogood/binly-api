@@ -1,13 +1,13 @@
-FROM node:alpine
+FROM node:lts-alpine
 
-WORKDIR /app
+WORKDIR /app 
+COPY package.json . 
+COPY yarn.lock .
 
-COPY package*.json ./
-RUN npm ci
+RUN yarn install 
 
 COPY . .
 COPY docker.config.json config.json
 
 EXPOSE 80
-
-CMD ["npm", "run", "start"]
+CMD npm run start 
