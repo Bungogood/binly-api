@@ -1,8 +1,12 @@
-import { database as dbconfig } from "../config.json";
+import { database as dbconfig, bcrypt as bconfig } from "../config.json";
 import { Client } from 'ts-postgres';
 import { queryLocation } from "./osdatahub";
 import { addCollections } from "./scraper";
 import { insertLocation, Location, toLocation } from "./location";
+import { PrismaClient } from '@prisma/client'
+import bcrypt from "bcrypt";
+
+const prisma = new PrismaClient()
 
 export type uuid = string;
 
@@ -22,11 +26,31 @@ export interface Signup {
   postcode: string
 }
 
+export interface Signin {
+  password: string
+  email: string
+}
+
 export const toUser = (signup: Signup) : User => {
   return {
     username: signup.username,
     email: signup.email
   }
+}
+
+export const signin = async ( signin: Signin ) : Promise<uuid> => {
+  const user = await prisma.users.findUnique({
+    where: {
+      email: signin.email
+    }
+  })
+
+  if (user == null) throw new Error("user not fond");
+  
+  if (!await bcrypt.compare(signin.password, user.password_hash)) {
+    throw new Error("invalid password");
+  }
+  return user.id
 }
 
 export const signup = async ( signup: Signup ) : Promise<User> => {
@@ -39,12 +63,11 @@ export const signup = async ( signup: Signup ) : Promise<User> => {
   } catch (e) {
     console.log("WARN: location already exsists")
   }
-
-  user.id = await insertUser(user, signup.password)
+  const hash = await bcrypt.hash(signup.password, bconfig.saltRounds)
+  user.id = await insertUser(user, hash)
   addAddress(user, loc).then(() => setDefaultAddress(user, loc))
   return user
 }
-
 
 export const getUser = async (userid: uuid) : Promise<User> => {
   const client = new Client(dbconfig);
@@ -65,7 +88,7 @@ export const insertUser = async (user: User, password: string) : Promise<uuid> =
   await client.connect();
 
   try {
-    const insertQuery : string = 'INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING id;'
+    const insertQuery : string = 'INSERT INTO users (username, password_hash, email) VALUES ($1, $2, $3) RETURNING id;'
     const result = await client.query(insertQuery, [user.username, password, user.email]);
     return <uuid>result.rows[0][0]
   } finally {

@@ -1,6 +1,6 @@
 import express from "express";
 import { Collection, QueryCollections, selectCollecions } from "./db";
-import { getUser, getAddresses, getDefaultAddress, setDefaultAddress, signup, Signup } from "./user";
+import { getUser, getAddresses, getDefaultAddress, setDefaultAddress, signin, signup, Signup, Signin } from "./user";
 import { sync } from "./scraper";
 import { port } from "../config.json";
 import { getLocation } from "./location";
@@ -8,8 +8,14 @@ import { getLocation } from "./location";
 const app = express();
 app.use(express.json());
 
-app.get("/api/signin", async ( req, res ) => {
-  res.send("work in!");
+app.post("/api/signin", async ( req, res ) => {
+  const usersignin : Signin = req.body;
+  try {
+    let userid = await signin(usersignin)
+    res.send(userid)
+  } catch (e) {
+    res.status(409).send({message: e.message})
+  }
 });
 
 app.post("/api/signup", async ( req, res ) => {
@@ -18,7 +24,6 @@ app.post("/api/signup", async ( req, res ) => {
     let user = await signup(newSignup)
     res.send(user)
   } catch (e) {
-    // console.log(e)
     res.status(409).send({message: e.message})
   }
 });

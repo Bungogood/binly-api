@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model addresses {
+  id                                     String    @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userid                                 String    @db.Uuid
+  uprn                                   String    @db.VarChar(12)
+  locations                              locations @relation(fields: [uprn], references: [uprn], onDelete: NoAction, onUpdate: NoAction)
+  users_addresses_useridTousers          users     @relation("addresses_useridTousers", fields: [userid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_addressesTousers_default_address users[]   @relation("addressesTousers_default_address")
+
+  @@id([userid, uprn])
+}
+
+model authroities {
+  name      String      @id @db.VarChar(50)
+  bins      bins[]
+  locations locations[]
+}
+
+model bins {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authroity   String        @db.VarChar(50)
+  purpose     String?       @db.VarChar(50)
+  color       String        @db.VarChar(50)
+  rgb         String        @db.VarChar(7)
+  created_on  DateTime      @default(now()) @db.Timestamp(6)
+  authroities authroities   @relation(fields: [authroity], references: [name], onDelete: NoAction, onUpdate: NoAction)
+  collections collections[]
+}
+
+model collections {
+  uprn      String    @db.VarChar(12)
+  binid     String    @db.Uuid
+  date      DateTime  @default(now()) @db.Date
+  bins      bins      @relation(fields: [binid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  locations locations @relation(fields: [uprn], references: [uprn], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([uprn, binid, date])
+}
+
+model locations {
+  uprn          String        @id @db.VarChar(12)
+  building_name String        @db.VarChar(50)
+  street        String        @db.VarChar(50)
+  area          String?       @db.VarChar(50)
+  city          String        @db.VarChar(50)
+  postcode      String        @db.VarChar(8)
+  authroity     String        @db.VarChar(50)
+  authroities   authroities   @relation(fields: [authroity], references: [name], onDelete: NoAction, onUpdate: NoAction)
+  addresses     addresses[]
+  collections   collections[]
+}
+
+model users {
+  id                                         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username                                   String      @unique @db.VarChar(50)
+  password_hash                              String      @db.VarChar(255)
+  email                                      String      @unique @db.VarChar(255)
+  created_on                                 DateTime    @default(now()) @db.Timestamp(6)
+  last_login                                 DateTime?   @db.Timestamp(6)
+  default_address                            String?     @db.Uuid
+  addresses_addressesTousers_default_address addresses?  @relation("addressesTousers_default_address", fields: [default_address], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  addresses_addresses_useridTousers          addresses[] @relation("addresses_useridTousers")
+}
