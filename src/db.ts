@@ -1,5 +1,7 @@
 import { Client } from 'ts-postgres';
 import { database as dbconfig } from "../config.json";
+// import color from 'color-convert'
+// "#"+color.keyword.hex("brown")
 
 export const insertCollection = async (collection: Collection) => {
   await insertCollections([collection])
@@ -24,6 +26,7 @@ export const insertCollections = async (collections: Collection[]) => {
 export interface Collection {
     uprn: string
     color: string
+    rgb?: string
     purpose?: string
     authority?: string
     date: Date
@@ -43,17 +46,17 @@ export const selectCollecions = async (query: QueryCollections) : Promise<Collec
     let results;
     if (query.from) {
       if (query.until) {
-        const selectQuery : string = 'SELECT color, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1 AND date > $2 AND date < $3 ORDER BY date ASC;'
+        const selectQuery : string = 'SELECT color, rgb, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1 AND date > $2 AND date < $3 ORDER BY date ASC;'
         results = await client.query(selectQuery, [query.uprn, query.from, query.until]);
       } else {
-        const selectQuery : string = 'SELECT color, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1 AND date > $2 ORDER BY date ASC;'
+        const selectQuery : string = 'SELECT color, rgb, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1 AND date > $2 ORDER BY date ASC;'
         results = await client.query(selectQuery, [query.uprn, query.from]);
       }
     } else {
-      const selectQuery : string = 'SELECT color, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1 ORDER BY date ASC;'
+      const selectQuery : string = 'SELECT color, rgb, purpose, date FROM collections INNER JOIN bins ON bins.id = collections.binid WHERE uprn = $1 ORDER BY date ASC;'
       results = await client.query(selectQuery, [query.uprn]);
     }
-    let toCollection = (res: any[]) : Collection => ({ uprn: query.uprn, color: res[0], purpose: res[1], date: res[2] })
+    let toCollection = ([ color, rgb, purpose, date ]: any[]) : Collection => ({ uprn: query.uprn, color: color, rgb: rgb, purpose: purpose, date: date })
     return results.rows.map(toCollection)
   } catch(e) {
     console.error("ERROR:", (<Error>e).message); //conversion to Error type

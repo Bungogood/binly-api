@@ -1,7 +1,6 @@
 import express from "express";
 import { Collection, QueryCollections, selectCollecions } from "./db";
 import { getUser, getAddresses, getDefaultAddress, setDefaultAddress, signup, Signup } from "./user";
-import cron from "node-cron"
 import { sync } from "./scraper";
 import { port } from "../config.json";
 import { getLocation } from "./location";
@@ -9,11 +8,11 @@ import { getLocation } from "./location";
 const app = express();
 app.use(express.json());
 
-app.get( "/api/signin", ( req, res ) => {
-  res.send( "work in!" );
+app.get("/api/signin", async ( req, res ) => {
+  res.send("work in!");
 });
 
-app.post('/api/signup', async ( req, res ) => {
+app.post("/api/signup", async ( req, res ) => {
   const newSignup : Signup = req.body;
   try {
     let user = await signup(newSignup)
@@ -24,7 +23,7 @@ app.post('/api/signup', async ( req, res ) => {
   }
 });
 
-app.get('/api/collections', async ( req, res ) => {
+app.get("/api/collections", async ( req, res ) => {
   let query = req.query as unknown as QueryCollections;
   if (query.from) query.from = new Date(query.from)
   if (query.until) query.until = new Date(query.until)
@@ -38,7 +37,7 @@ app.get('/api/collections', async ( req, res ) => {
   }
 });
 
-app.get('/api/user/collections', async ( req, res ) => {
+app.get("/api/user/collections", async ( req, res ) => {
   let { userid } = req.query as { userid: string };
   // no checking userid exsists
   try {
@@ -53,7 +52,7 @@ app.get('/api/user/collections', async ( req, res ) => {
   }
 });
 
-app.get('/api/user/addresses', async ( req, res ) => {
+app.get("/api/user/addresses", async ( req, res ) => {
   let { userid } = req.query as { userid: string };
   // no checking userid exsists
   try { 
@@ -66,7 +65,7 @@ app.get('/api/user/addresses', async ( req, res ) => {
   }
 });
 
-app.get('/api/user/default-address', async ( req, res ) => {
+app.get("/api/user/default-address", async ( req, res ) => {
   let { userid } = req.query as { userid: string };
   // no checking userid exsists
   try { 
@@ -80,7 +79,7 @@ app.get('/api/user/default-address', async ( req, res ) => {
   }
 });
 
-app.put('/api/user/default-address', async ( req, res ) => {
+app.put("/api/user/default-address", async ( req, res ) => {
   let { userid, uprn } = req.body as { userid: string, uprn: string };
   // no checking userid exsists
   try {
@@ -94,7 +93,7 @@ app.put('/api/user/default-address', async ( req, res ) => {
   }
 });
 
-app.patch('/api/sync', async ( req, res ) => {
+app.patch("/api/sync", async ( req, res ) => {
   let { uprn } = req.query as { uprn: string, year?: string };
   try {
     await sync(uprn)
@@ -111,7 +110,8 @@ app.listen( port, () => {
 } );
 
 /*
-cron.schedule('* * * * *', () => {
-  console.log('running a task every minute');
+import cron from "node-cron"
+cron.schedule("* * * * *", () => {
+  console.log("running a task every minute");
 });
  */
