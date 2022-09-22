@@ -30,4 +30,4 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: binly/api:latest
+          tags: ${{ secrets.DOCKER_REGISTRY }}/binly/api:latest
